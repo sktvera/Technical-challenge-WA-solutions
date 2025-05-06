@@ -1,342 +1,193 @@
 import React, { useState } from 'react';
-import {
-  Box,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  Typography,
-  TextField,
-  TablePagination,
-  Select,
-  MenuItem,
-  InputLabel,
-  FormControl,
-  Grid
-} from '@mui/material';
+import styled from 'styled-components';
 import dayjs from 'dayjs';
+import ColumnSummary from '../ColumnSummary/ColumnSummary';
 
-const getBackgroundColor = (netFlow, makeToOrder, redZone, yellowZone, greenZone) => {
-    const total = netFlow + makeToOrder;
-  
-    if (total === 0) {
-      return '#000000'; // Negro
-    } else if (total >= 1 && total <= redZone) {
-      return '#f44336'; // Rojo
-    } else if (total > redZone && total <= redZone + yellowZone) {
-      return '#ffeb3b'; // Amarillo
-    } else if (total > redZone + yellowZone && total <= redZone + yellowZone + greenZone) {
-      return '#4caf50'; // Verde
-    } else if (total > redZone + yellowZone + greenZone) {
-      return '#2196f3'; // Azul
-    } else {
-      return '#ffffff'; // Blanco por defecto
-    }
-  };
+const Container = styled.div`
+  overflow: auto;
+  background: #111;
+  padding: 1rem;
+`;
 
+const FilterBar = styled.div`
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+`;
 
+const Input = styled.input`
+  padding: 4px;
+`;
 
+const Select = styled.select`
+  padding: 4px;
+`;
 
+const Table = styled.table`
+  border-collapse: collapse;
+  width: max-content;
+`;
 
+const Th = styled.th`
+  background: #e0e0e0;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding: 8px;
+  border: 1px solid #ccc;
+  cursor: pointer;
+`;
 
+const Td = styled.td`
+  text-align: center;
+  padding: 6px;
+  width: 60px;
+  height: 30px;
+  color: white;
+  background-color: ${props => props.bgColor || '#fff'};
+  border: 1px solid #ccc;
+`;
 
+const FixedColumn = styled.td`
+  position: sticky;
+  left: ${props => props.left};
+  background: #fff;
+  z-index: 1;
+  border: 1px solid #ccc;
+  padding: 6px;
+  font-weight: bold;
+`;
 
-  const getZone = (netFlow, makeToOrder, redZone, yellowZone, greenZone) => {
-    const total = netFlow + makeToOrder;
-  
+const getBackgroundColor = (total, redZone, yellowZone, greenZone) => {
+  if (total === 0) return '#000000';
+  if (total <= redZone) return '#f44336';
+  if (total <= redZone + yellowZone) return '#ffeb3b';
+  if (total <= redZone + yellowZone + greenZone) return '#4caf50';
+  return '#2196f3';
+};
 
-    if (total === 0){
-        return 'Negro'
-    } else if (total >= 1 && total <= redZone) {
-        return 'Rojo';
-    } else if (total > redZone && total <= redZone + yellowZone) {
-        return 'Amarillo';
-    } else if (total > redZone + yellowZone && total <= redZone + yellowZone + greenZone) {
-
-        return 'Verde';
-    } else if (total > redZone + yellowZone + greenZone) {
-        return 'Azul';
-    }else{
-
-        return '#ffffff'; // Blanco por defecto
-    }
-  };
-
-
-
-
-
-
-
-
-
-
-/*   ● Rojo: Si `1 <= (NetFlow + MakeToOrder) <= RedZone`.
-  ● Amarillo: Si `RedZone < (NetFlow + MakeToOrder) <= RedZone +
-  YellowZone`.
-  ● Verde: Si `RedZone + YellowZone < (NetFlow + MakeToOrder) <=
-  RedZone + YellowZone + GreenZone`.
-  ● Negro: Si `(NetFlow + MakeToOrder) == 0`.
-  ● Azul: Si `(NetFlow + MakeToOrder) > RedZone + YellowZone +
-  GreenZone`.
- */
-
-/*   Ejemplo:
-  Si `NetFlow = 100`, `MakeToOrder = 23`, `RedZone = 50`, `YellowZone = 55`,
-  `GreenZone = 55`, el color de la celda es verde. */
-
-
-
-
-const GridTemplate = ({ data }) => {
+const CalendarGrid = ({ data }) => {
   const [tableData, setTableData] = useState(data);
-  const [page, setPage] = useState(0);
-  const rowsPerPage = 10;
-
-  const [filterMakeToOrderMin, setFilterMakeToOrderMin] = useState('');
-const [filterMakeToOrderMax, setFilterMakeToOrderMax] = useState('');
-
-  // Filtros
-  const [filterCenter, setFilterCenter] = useState('');
+  const [selectedDate, setSelectedDate] = useState('');
   const [filterReference, setFilterReference] = useState('');
+  const [filterColor, setFilterColor] = useState('');
+  const [filterMtoMin, setFilterMtoMin] = useState('');
+  const [filterMtoMax, setFilterMtoMax] = useState('');
   const [filterDate, setFilterDate] = useState('');
-  const [filterStartDate, setFilterStartDate] = useState('');
-  const [filterEndDate, setFilterEndDate] = useState('');
-  const [filterNetFlowMin, setFilterNetFlowMin] = useState('');
-  const [filterNetFlowMax, setFilterNetFlowMax] = useState('');
-  const [filterZone, setFilterZone] = useState('');
 
-  const handleChangePage = (_, newPage) => setPage(newPage);
+  const dates = [...new Set(data.map(item => dayjs(item.VisibleForecastedDate).format('YYYY-MM-DD')))].sort();
 
-  const handleInputChange = (index, value) => {
-    const updated = [...filteredData];
-    updated[index].MakeToOrder = parseFloat(value) || 0;
-    setTableData(prev =>
-      prev.map((item, idx) =>
-        item.Reference === updated[index].Reference &&
-        item.VisibleForecastedDate === updated[index].VisibleForecastedDate
-          ? { ...item, MakeToOrder: updated[index].MakeToOrder }
-          : item
-      )
-    );
-  };
+  const grouped = {};
+  tableData.forEach(item => {
+    const key = `${item.CenterCode}-${item.Reference}`;
+    const date = dayjs(item.VisibleForecastedDate).format('YYYY-MM-DD');
+    const total = item.NetFlow + item.MakeToOrder;
+    const color = getBackgroundColor(total, item.RedZone, item.YellowZone, item.GreenZone);
 
-  const uniqueCenters = [...new Set(data.map(d => d.CenterCode))];
-  const uniqueReferences = [...new Set(data.map(d => d.Reference))];
+    if (!grouped[key]) {
+      grouped[key] = {
+        CenterCode: item.CenterCode,
+        Reference: item.Reference,
+        cells: {},
+      };
+    }
 
-  const filteredData = tableData.filter(row => {
-    const date = dayjs(row.VisibleForecastedDate).format('YYYY-MM-DD');
-    const total = row.NetFlow + row.MakeToOrder;
-    const zone = getZone(row.NetFlow, row.MakeToOrder, row.RedZone, row.YellowZone, row.GreenZone);
-  
-    return (
-      (!filterCenter || row.CenterCode === filterCenter) &&
-      (!filterReference || row.Reference === filterReference) &&
-      (!filterDate || date === filterDate) &&
-      (!filterStartDate || date >= filterStartDate) &&
-      (!filterEndDate || date <= filterEndDate) &&
-      (!filterNetFlowMin || row.NetFlow >= parseFloat(filterNetFlowMin)) &&
-      (!filterNetFlowMax || row.NetFlow <= parseFloat(filterNetFlowMax)) &&
-      (!filterZone || zone === filterZone) &&
-      (!filterMakeToOrderMin || row.MakeToOrder >= parseFloat(filterMakeToOrderMin)) &&
-      (!filterMakeToOrderMax || row.MakeToOrder <= parseFloat(filterMakeToOrderMax))
-    );
+    grouped[key].cells[date] = {
+      value: item.MakeToOrder,
+      bgColor: color,
+    };
   });
 
-  const paginatedData = filteredData.slice(page * rowsPerPage, (page + 1) * rowsPerPage);
+  const handleEdit = (key, date, newValue) => {
+    setTableData(prev =>
+      prev.map(item => {
+        const idKey = `${item.CenterCode}-${item.Reference}`;
+        const itemDate = dayjs(item.VisibleForecastedDate).format('YYYY-MM-DD');
+        if (idKey === key && itemDate === date) {
+          const total = item.NetFlow + newValue;
+          return {
+            ...item,
+            MakeToOrder: newValue,
+            color: getBackgroundColor(total, item.RedZone, item.YellowZone, item.GreenZone),
+          };
+        }
+        return item;
+      })
+    );
+  };
 
+  const handleDateClick = date => {
+    setSelectedDate(date);
+  };
 
-
-  
+  const filteredGrouped = Object.entries(grouped)
+    .filter(([_, row]) => {
+      const hasDate = filterDate ? Object.keys(row.cells).includes(filterDate) : true;
+      const colorMatch = filterColor ? Object.values(row.cells).some(c => c.bgColor === filterColor) : true;
+      const mtoMinMatch = filterMtoMin === '' || Object.values(row.cells).some(c => c.value >= parseFloat(filterMtoMin));
+      const mtoMaxMatch = filterMtoMax === '' || Object.values(row.cells).some(c => c.value <= parseFloat(filterMtoMax));
+      return (
+        row.Reference.toLowerCase().includes(filterReference.toLowerCase()) &&
+        hasDate && colorMatch && mtoMinMatch && mtoMaxMatch
+      );
+    })
+    .sort(([, a], [, b]) => a.Reference.localeCompare(b.Reference));
 
   return (
-    <Box sx={{ p: 4, backgroundColor: '#f5f5f5', minHeight: '100vh' }}>
-      <Typography variant="h4" gutterBottom align="center">
-        Tabla de Productos por Fecha
-      </Typography>
+    <Container>
+      <FilterBar>
+        <Input placeholder="Filtrar por Reference" value={filterReference} onChange={e => setFilterReference(e.target.value)} />
+        <Input placeholder="MTO Min" type="number" value={filterMtoMin} onChange={e => setFilterMtoMin(e.target.value)} />
+        <Input placeholder="MTO Max" type="number" value={filterMtoMax} onChange={e => setFilterMtoMax(e.target.value)} />
+        <Select value={filterColor} onChange={e => setFilterColor(e.target.value)}>
+          <option value="">Color</option>
+          <option value="#f44336">Rojo</option>
+          <option value="#ffeb3b">Amarillo</option>
+          <option value="#4caf50">Verde</option>
+          <option value="#2196f3">Azul</option>
+          <option value="#000000">Negro</option>
+        </Select>
+        <Input type="date" value={filterDate} onChange={e => setFilterDate(e.target.value)} />
+      </FilterBar>
 
-      {/* Filtros */}
-      <Grid container spacing={2} mb={3}>
-        <Grid item xs={12} sm={2}>
-          <FormControl fullWidth>
-            <InputLabel>CenterCode</InputLabel>
-            <Select value={filterCenter} onChange={e => setFilterCenter(e.target.value)} label="CenterCode">
-              <MenuItem value="">Todos</MenuItem>
-              {uniqueCenters.map(center => (
-                <MenuItem key={center} value={center}>{center}</MenuItem>
+      <Table>
+        <thead>
+          <tr>
+            <Th>CenterCode</Th>
+            <Th>Reference</Th>
+            {dates.map(date => (
+              <Th key={date} onClick={() => handleDateClick(date)}>{date}</Th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {filteredGrouped.map(([key, row]) => (
+            <tr key={key}>
+              <FixedColumn left="0">{row.CenterCode}</FixedColumn>
+              <FixedColumn left="120px">{row.Reference}</FixedColumn>
+              {dates.map(date => (
+                <Td
+                  key={date}
+                  bgColor={row.cells[date]?.bgColor}
+                  contentEditable
+                  suppressContentEditableWarning
+                  onBlur={e => {
+                    const value = parseFloat(e.target.innerText) || 0;
+                    handleEdit(key, date, value);
+                  }}
+                >
+                  {row.cells[date]?.value || 0}
+                </Td>
               ))}
-            </Select>
-          </FormControl>
+            </tr>
+          ))}
+        </tbody>
+      </Table>
 
-
-
-          <TextField
-    label="MTO Min"
-    type="number"
-    value={filterMakeToOrderMin}
-    onChange={e => setFilterMakeToOrderMin(e.target.value)}
-    fullWidth
-  />
-</Grid>
-
-<Grid item xs={6} sm={1}>
-  <TextField
-    label="MTO Max"
-    type="number"
-    value={filterMakeToOrderMax}
-    onChange={e => setFilterMakeToOrderMax(e.target.value)}
-    fullWidth
-  />
-        </Grid>
-
-        <Grid item xs={12} sm={2}>
-          <FormControl fullWidth>
-            <InputLabel>Reference</InputLabel>
-            <Select value={filterReference} onChange={e => setFilterReference(e.target.value)} label="Reference">
-              <MenuItem value="">Todos</MenuItem>
-              {uniqueReferences.map(ref => (
-                <MenuItem key={ref} value={ref}>{ref}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Grid>
-
-        <Grid item xs={12} sm={2}>
-          <TextField
-            type="date"
-            label="Fecha específica"
-            InputLabelProps={{ shrink: true }}
-            value={filterDate}
-            onChange={e => setFilterDate(e.target.value)}
-            fullWidth
-          />
-        </Grid>
-
-        <Grid item xs={6} sm={2}>
-          <TextField
-            type="date"
-            label="Desde"
-            InputLabelProps={{ shrink: true }}
-            value={filterStartDate}
-            onChange={e => setFilterStartDate(e.target.value)}
-            fullWidth
-          />
-        </Grid>
-
-        <Grid item xs={6} sm={2}>
-          <TextField
-            type="date"
-            label="Hasta"
-            InputLabelProps={{ shrink: true }}
-            value={filterEndDate}
-            onChange={e => setFilterEndDate(e.target.value)}
-            fullWidth
-          />
-        </Grid>
-
-        <Grid item xs={6} sm={1}>
-          <TextField
-            label="NetFlow Min"
-            type="number"
-            value={filterNetFlowMin}
-            onChange={e => setFilterNetFlowMin(e.target.value)}
-            fullWidth
-          />
-        </Grid>
-
-        <Grid item xs={6} sm={1}>
-          <TextField
-            label="NetFlow Max"
-            type="number"
-            value={filterNetFlowMax}
-            onChange={e => setFilterNetFlowMax(e.target.value)}
-            fullWidth
-          />
-        </Grid>
-
-        <Grid item xs={12} sm={2}>
-          <FormControl fullWidth>
-            <InputLabel>Zona</InputLabel>
-            <Select value={filterZone} onChange={e => setFilterZone(e.target.value)} label="Zona">
-              <MenuItem value="">Todas</MenuItem>
-              <MenuItem value="Rojo">Rojo</MenuItem>
-              <MenuItem value="Amarillo">Amarillo</MenuItem>
-              <MenuItem value="Verde">Verde</MenuItem>
-              <MenuItem value="Azul">Azul</MenuItem>
-              <MenuItem value="Negro">Negro</MenuItem>
-            </Select>
-          </FormControl>
-        </Grid>
-      </Grid>
-
-      {/* Tabla */}
-      <TableContainer component={Paper}>
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell>CenterCode</TableCell>
-              <TableCell>Reference</TableCell>
-              <TableCell>Fecha</TableCell>
-              <TableCell align="center">MakeToOrder</TableCell>
-              <TableCell align="center">NetFlow</TableCell>
-              <TableCell align="center">Zona</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {paginatedData.map((row, index) => {
-              const total = row.NetFlow + row.MakeToOrder;
-              const bgColor = getBackgroundColor(
-                row.NetFlow,
-                row.MakeToOrder,
-                row.RedZone,
-                row.YellowZone,
-                row.GreenZone
-              );
-
-              const zone = getZone(row.NetFlow, row.MakeToOrder, row.RedZone, row.YellowZone, row.GreenZone);
-
-              return (
-                <TableRow key={index}>
-                  <TableCell>{row.CenterCode}</TableCell>
-                  <TableCell>{row.Reference}</TableCell>
-                  <TableCell>{row.VisibleForecastedDate.split('T')[0]}</TableCell>
-                  <TableCell align="center" sx={{ backgroundColor: bgColor }}>
-                    <TextField
-                      value={row.MakeToOrder}
-                      variant="standard"
-                      onChange={e => handleInputChange(index + page * rowsPerPage, e.target.value)}
-                      inputProps={{ style: { textAlign: 'center', color: '#fff' } }}
-                    />
-                  </TableCell>
-                  <TableCell align="center">{row.NetFlow}</TableCell>
-                  <TableCell align="center">{zone}</TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-        <TablePagination
-          component="div"
-          count={filteredData.length}
-          page={page}
-          onPageChange={handleChangePage}
-          rowsPerPage={rowsPerPage}
-          rowsPerPageOptions={[10]}
-        />
-      </TableContainer>
-    </Box>
+      {selectedDate && <ColumnSummary grouped={grouped} date={selectedDate} />}
+    </Container>
   );
 };
 
-export default GridTemplate;
-
-
-
-
-
-
-
-
+export default CalendarGrid;
