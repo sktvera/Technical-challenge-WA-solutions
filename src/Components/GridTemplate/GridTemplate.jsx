@@ -67,7 +67,11 @@ const getBackgroundColor = (total, redZone, yellowZone, greenZone) => {
   return '#2196f3';
 };
 
-const CalendarGrid = ({ data }) => {
+const GridTemplate = ({ data }) => {
+
+    const [sortAsc, setSortAsc] = useState(true);
+
+
   const [tableData, setTableData] = useState(data);
   const [selectedDate, setSelectedDate] = useState('');
   const [filterReference, setFilterReference] = useState('');
@@ -75,6 +79,12 @@ const CalendarGrid = ({ data }) => {
   const [filterMtoMin, setFilterMtoMin] = useState('');
   const [filterMtoMax, setFilterMtoMax] = useState('');
   const [filterDate, setFilterDate] = useState('');
+
+
+  const toggleSortOrder = () => {
+    setSortAsc(prev => !prev);
+  };
+
 
   const dates = [...new Set(data.map(item => dayjs(item.VisibleForecastedDate).format('YYYY-MM-DD')))].sort();
 
@@ -122,20 +132,28 @@ const CalendarGrid = ({ data }) => {
   };
 
   const filteredGrouped = Object.entries(grouped)
-    .filter(([_, row]) => {
-      const hasDate = filterDate ? Object.keys(row.cells).includes(filterDate) : true;
-      const colorMatch = filterColor ? Object.values(row.cells).some(c => c.bgColor === filterColor) : true;
-      const mtoMinMatch = filterMtoMin === '' || Object.values(row.cells).some(c => c.value >= parseFloat(filterMtoMin));
-      const mtoMaxMatch = filterMtoMax === '' || Object.values(row.cells).some(c => c.value <= parseFloat(filterMtoMax));
-      return (
-        row.Reference.toLowerCase().includes(filterReference.toLowerCase()) &&
-        hasDate && colorMatch && mtoMinMatch && mtoMaxMatch
-      );
-    })
-    .sort(([, a], [, b]) => a.Reference.localeCompare(b.Reference));
+  .filter(([_, row]) => {
+    const hasDate = filterDate ? Object.keys(row.cells).includes(filterDate) : true;
+    const colorMatch = filterColor ? Object.values(row.cells).some(c => c.bgColor === filterColor) : true;
+    const mtoMinMatch = filterMtoMin === '' || Object.values(row.cells).some(c => c.value >= parseFloat(filterMtoMin));
+    const mtoMaxMatch = filterMtoMax === '' || Object.values(row.cells).some(c => c.value <= parseFloat(filterMtoMax));
+    return (
+      row.Reference.toLowerCase().includes(filterReference.toLowerCase()) &&
+      hasDate && colorMatch && mtoMinMatch && mtoMaxMatch
+    );
+  })
+  // Ordenar alfabéticamente por referencia
+  .sort(([, a], [, b]) => {
+    const compare = a.Reference.localeCompare(b.Reference);
+    return sortAsc ? compare : -compare;
+  });
 
   return (
     <Container>
+
+
+
+        
       <FilterBar>
         <Input placeholder="Filtrar por Reference" value={filterReference} onChange={e => setFilterReference(e.target.value)} />
         <Input placeholder="MTO Min" type="number" value={filterMtoMin} onChange={e => setFilterMtoMin(e.target.value)} />
@@ -155,7 +173,9 @@ const CalendarGrid = ({ data }) => {
         <thead>
           <tr>
             <Th>CenterCode</Th>
-            <Th>Reference</Th>
+            <Th onClick={toggleSortOrder} style={{ textDecoration: 'underline' }}>
+  Reference {sortAsc ? '▲' : '▼'}
+</Th>
             {dates.map(date => (
               <Th key={date} onClick={() => handleDateClick(date)}>{date}</Th>
             ))}
@@ -190,4 +210,4 @@ const CalendarGrid = ({ data }) => {
   );
 };
 
-export default CalendarGrid;
+export default GridTemplate;
