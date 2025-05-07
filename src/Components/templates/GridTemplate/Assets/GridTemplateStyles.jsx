@@ -9,9 +9,9 @@ import styled from 'styled-components';
 
 const Container = styled.div`
   overflow: hidden;
-  background-image: url('https://www.transparenttextures.com/patterns/stardust.png');
+ 
   padding: 1rem;
-  background-color: #000814;
+  
 `;
 
 const TableWrapper = styled.div`

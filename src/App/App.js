@@ -10,12 +10,13 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import GridTemplate from '../Components/templates/GridTemplate/GridTemplate';
 import data from './assets/DatosPruebas.json'; //Simulacion de datos prueba tecnica
 import Home from '../Components/pages/Home/Home'
-
+import AppStyles from './assets/AppStyles'; 
 
 
 function App() {
   return (
     <Router>
+      <AppStyles.SpaceBackground /> {/* Fondo aplicado globalmente */}
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<GridTemplate data={data.Datos} />} />

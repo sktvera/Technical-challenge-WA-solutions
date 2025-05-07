@@ -9,6 +9,7 @@ import React, { useState } from 'react';
 import dayjs from 'dayjs';
 import ColumnSummary from '../../organisms/ColumnSummary/ColumnSummary';
 import GridTemplateStyles from './Assets/GridTemplateStyles';// Estilos styled-components
+
 import './Assets/GridTemplate.css'
 
 
@@ -42,7 +43,9 @@ const GridTemplate = ({ data }) => {
   const [filterColor, setFilterColor] = useState('');
   const [filterMtoMin, setFilterMtoMin] = useState('');
   const [filterMtoMax, setFilterMtoMax] = useState('');
-  const [filterDate, setFilterDate] = useState('');
+  const [filterStartDate, setFilterStartDate] = useState('');
+  const [filterEndDate, setFilterEndDate] = useState('');
+  const [dateRange, setDateRange] = useState([null, null]);
 
 
   const toggleSortOrder = () => {
@@ -122,26 +125,38 @@ const GridTemplate = ({ data }) => {
   const handleDateClick = date => {
     setSelectedDate(date);
   };
-
-// Filtrado de datos corregido para mostrar solo celdas con el color seleccionado
-const filteredGrouped = Object.entries(grouped)
-  .filter(([_, row]) => {
-    const hasDate = filterDate ? Object.keys(row.cells).includes(filterDate) : true;
-    const colorMatch = filterColor
-      ? Object.values(row.cells).some(c => c.bgColor === filterColor)
-      : true;
-    const mtoMinMatch = filterMtoMin === '' || Object.values(row.cells).some(c => c.value >= parseFloat(filterMtoMin));
-    const mtoMaxMatch = filterMtoMax === '' || Object.values(row.cells).some(c => c.value <= parseFloat(filterMtoMax));
-    return (
-      row.Reference.toLowerCase().includes(filterReference.toLowerCase()) &&
-      hasDate && colorMatch && mtoMinMatch && mtoMaxMatch
-    );
-  })
-  // Ordenar alfabéticamente por referencia
-  .sort(([, a], [, b]) => {
-    const compare = a.Reference.localeCompare(b.Reference);
-    return sortAsc ? compare : -compare;
-  });
+  const dateMatch = (date) => {
+    const formattedDate = dayjs(date).format('YYYY-MM-DD');
+    const isAfterStart = !filterStartDate || dayjs(formattedDate).isSameOrAfter(dayjs(filterStartDate));
+    const isBeforeEnd = !filterEndDate || dayjs(formattedDate).isSameOrBefore(dayjs(filterEndDate));
+    return isAfterStart && isBeforeEnd;
+  };
+  
+  // Filtrado de datos corregido para respetar el rango de MTO
+  const filteredGrouped = Object.entries(grouped)
+    .filter(([_, row]) => {
+      const hasDate = !filterStartDate && !filterEndDate 
+        ? true 
+        : Object.keys(row.cells).some(date => dateMatch(date));
+  
+      const colorMatch = filterColor
+        ? Object.values(row.cells).some(c => c.bgColor === filterColor)
+        : true;
+  
+      // Filtrar por MTO Min y Max ajustado
+      const mtoMinMatch = filterMtoMin === '' || Object.values(row.cells).some(c => parseFloat(c.value) >= parseFloat(filterMtoMin));
+      const mtoMaxMatch = filterMtoMax === '' || Object.values(row.cells).some(c => parseFloat(c.value) <= parseFloat(filterMtoMax));
+  
+      return (
+        row.Reference.toLowerCase().includes(filterReference.toLowerCase()) &&
+        hasDate && colorMatch && mtoMinMatch && mtoMaxMatch
+      );
+    })
+    // Ordenar alfabéticamente por referencia
+    .sort(([, a], [, b]) => {
+      const compare = a.Reference.localeCompare(b.Reference);
+      return sortAsc ? compare : -compare;
+    });
 
   return (
     <GridTemplateStyles.Container >
@@ -155,7 +170,7 @@ const filteredGrouped = Object.entries(grouped)
             value={filterReference} 
             onChange={e => setFilterReference(e.target.value)} 
             />
-            <GridTemplateStyles.Input 
+           {/*  <GridTemplateStyles.Input 
             placeholder="MTO Min" 
             type="number" 
             value={filterMtoMin} 
@@ -166,7 +181,7 @@ const filteredGrouped = Object.entries(grouped)
             type="number" 
             value={filterMtoMax} 
             onChange={e => setFilterMtoMax(e.target.value)} 
-            />
+            /> */}
             <GridTemplateStyles.Select 
             value={filterColor} 
             onChange={e => setFilterColor(e.target.value)}
@@ -187,7 +202,21 @@ const filteredGrouped = Object.entries(grouped)
           </GridTemplateStyles.MonthBanner>
           )
         }
-        </GridTemplateStyles.FilterWrapper>
+
+{/* <GridTemplateStyles.Input
+  type="date"
+  placeholder="Desde"
+  value={filterStartDate}
+  onChange={e => setFilterStartDate(e.target.value)}
+/>
+<GridTemplateStyles.Input
+  type="date"
+  placeholder="Hasta"
+  value={filterEndDate}
+  onChange={e => setFilterEndDate(e.target.value)}
+/> */}
+        
+                </GridTemplateStyles.FilterWrapper>
     </GridTemplateStyles.FixedMenu>
 
 
