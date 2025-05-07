@@ -55,7 +55,7 @@ const OptimizedCanvas = memo(() => (
       top: '70px',
     }}
     camera={{ position: [0, 0, 7], fov: 78 }}
-    gl={{ antialias: true, powerPreference: 'high-performance' }} // Mejora el rendimiento gráfico
+    gl={{ antialias: true, powerPreference: 'high-performance' }} 
   >
     <ambientLight intensity={0.8} color="#ffffff" />
     <directionalLight position={[0, 5, 5]} intensity={1} color="#ffffff" />

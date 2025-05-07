@@ -71,10 +71,10 @@ const SpaceScene = () => {
         width: '100%',
         height: '100%',
         zIndex: 1,          
-        pointerEvents: 'none' // No bloquea clics en botones
+        pointerEvents: 'none' 
       }}
       camera={{ position: [0, -2, 5], fov: 60 }}
-      gl={{ antialias: true, alpha: true }}  // Mejor antialiasing
+      gl={{ antialias: true, alpha: true }}  
     >
       <ambientLight intensity={0.3} />  // Menor intensidad para ambiente
       <directionalLight position={[5, 5, 5]} intensity={0.7} />

@@ -123,10 +123,13 @@ const GridTemplate = ({ data }) => {
     setSelectedDate(date);
   };
 
-  const filteredGrouped = Object.entries(grouped)
+// Filtrado de datos corregido para mostrar solo celdas con el color seleccionado
+const filteredGrouped = Object.entries(grouped)
   .filter(([_, row]) => {
     const hasDate = filterDate ? Object.keys(row.cells).includes(filterDate) : true;
-    const colorMatch = filterColor ? Object.values(row.cells).some(c => c.bgColor === filterColor) : true;
+    const colorMatch = filterColor
+      ? Object.values(row.cells).some(c => c.bgColor === filterColor)
+      : true;
     const mtoMinMatch = filterMtoMin === '' || Object.values(row.cells).some(c => c.value >= parseFloat(filterMtoMin));
     const mtoMaxMatch = filterMtoMax === '' || Object.values(row.cells).some(c => c.value <= parseFloat(filterMtoMax));
     return (
@@ -230,8 +233,12 @@ const GridTemplate = ({ data }) => {
         <tr key={key}>
             <GridTemplateStyles.FixedColumn left="0">{row.CenterCode}</GridTemplateStyles.FixedColumn>
             <GridTemplateStyles.FixedColumn left="110px">{row.Reference}</GridTemplateStyles.FixedColumn>
-                {dates.map((date, index) => {
-                const isSelected = selectedDate === date;
+            {dates.map((date, index) => {
+        const cell = row.cells[date];
+        const isSelected = selectedDate === date;
+        
+        // Verificar si el filtro de color está activo y si la celda coincide
+        if (filterColor && cell?.bgColor !== filterColor) return null;
                     return (
                         <GridTemplateStyles.Td
                             key={date}
