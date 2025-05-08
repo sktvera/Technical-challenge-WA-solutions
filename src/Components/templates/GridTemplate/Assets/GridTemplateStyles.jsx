@@ -199,6 +199,14 @@ font-weight: bold;
   }
 `;
 
+const Logo = styled.img`
+  width: 340px;
+  height: auto;
+  margin-bottom: 2rem;
+  filter: drop-shadow(0 0 15px #00f7ff);
+  animation: fadeIn 1s ease-out;
+`;
+
 
 
 // Exportación estilos__________________
@@ -214,7 +222,8 @@ const GridTemplateStyles = {
     Th,
     Td,
     FixedColumn,
-    MonthBanner
+    MonthBanner,
+    Logo
   };
   
   export default GridTemplateStyles;

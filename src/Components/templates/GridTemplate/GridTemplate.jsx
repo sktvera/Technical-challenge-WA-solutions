@@ -10,6 +10,10 @@ import dayjs from 'dayjs';
 import ColumnSummary from '../../organisms/ColumnSummary/ColumnSummary';
 import GridTemplateStyles from './Assets/GridTemplateStyles';// Estilos styled-components
 import { Snackbar, Alert } from '@mui/material';
+import waicon from './Assets/image.png'; // icon Wa solution
+import { Link } from 'react-router-dom';
+
+
 
 import './Assets/GridTemplate.css'
 
@@ -188,9 +192,17 @@ const handleCloseNotification = (event, reason) => {
   return (
     <GridTemplateStyles.Container >
       
+      
 
      {/*  FILTROS GRID DATA TABLE____________ */}
     <GridTemplateStyles.FixedMenu>
+    <GridTemplateStyles.Logo 
+      component={Link} 
+      to="/"  
+      src={waicon} 
+      alt="WA Logo" 
+      style={{ cursor: 'pointer' }}
+    />
         <GridTemplateStyles.FilterWrapper>
             <GridTemplateStyles.Input 
             placeholder="Filtrar por Reference" 
