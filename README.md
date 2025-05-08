@@ -86,7 +86,7 @@ La estructura del proyecto sigue el patrón Atomic Design, que facilita la creac
 # Instalar dependencias:
 npm install
 
-Ejecutar el proyecto:
+# Ejecutar el proyecto:
 npm start
 
 
@@ -119,3 +119,7 @@ Proyecto realizado con fines educativos como parte de un reto técnico para WA S
 
     Jest + React Testing Library 
 Lazy Loading, Code Splitting y Memoization.
+
+
+
+#a6a6a629 tranparente 

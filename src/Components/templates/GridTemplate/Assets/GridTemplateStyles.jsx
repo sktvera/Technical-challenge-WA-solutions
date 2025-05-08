@@ -86,11 +86,13 @@ const StickyThLeft = styled.th`
   position: sticky;
   left: ${props => props.left};
   top: 0;
-  background: #000;
-  color: #fff;
+  background: #000000;
+  color: #ffffff;
   z-index: 3;
   padding: 10px;
   white-space: nowrap;
+  text-decoration: none; /* Remueve el subrayado */
+  cursor: pointer; /* Mantiene el cursor de puntero para indicar interactividad */
 `;
 
 const Table = styled.table`
@@ -102,13 +104,13 @@ const Table = styled.table`
 
 
 const Th = styled.th`
-  background: #000000;
+  background: #a6a6a629;
   color: #ffffff;
   position: sticky;
   top: 0;
   z-index: 2;
   padding: 10px;
-  border: 1px solid #ccc;
+  
   cursor: pointer;
   white-space: nowrap;
   font-weight: 600;
@@ -127,7 +129,7 @@ const Td = styled.td`
 const FixedColumn = styled.td`
   position: sticky;
   left: ${props => props.left};
-  background: #000;
+  background: #000000;
   color: #fff;
   z-index: 2;
   padding: 8px;

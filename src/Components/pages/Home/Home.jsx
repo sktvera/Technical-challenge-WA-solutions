@@ -53,7 +53,7 @@ function Home() {
           </AppStyles.Title>
           <AppStyles.Subtitle variant="h5">Senior Frontend — WA Solutions 🚀</AppStyles.Subtitle>
           <AppStyles.StyledButton variant="contained" component={Link} to="/about" sx={{ mt: 4 }}>
-            ¿CÓMO INICIAR?
+             INICIAR 
           </AppStyles.StyledButton>
         </Box>
       </Box>

@@ -10,12 +10,13 @@ import styled from 'styled-components';
 
 
 const SummaryContainer = styled.div`
-  background: #222;
+  background: #e1e1e11a;
   color: white;
   margin-top: 2rem;
   padding: 1rem;
-  border: 1px solid #555;
+  border: 1px solid #fffefe73;
   position: relative;
+border-radius: 12px;
 `;
 
 const ColorRow = styled.div`

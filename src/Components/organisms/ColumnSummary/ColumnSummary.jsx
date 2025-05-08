@@ -13,20 +13,22 @@ import ColumnSummaryStyles from './assets/ColumnSummaryStyles'
 
 const ColumnSummary = ({ grouped, date }) => {
   const colorMap = {
-    '#2196f3': 'Azul',
-    '#4caf50': 'Verde',
-    '#ffeb3b': 'Amarillo',
-    '#f44336': 'Rojo',
-    '#000000': 'Negro'
+    '#2195f383': 'Azul',
+    '#4caf4f9b': 'Verde',
+    '#ffeb3ba5': 'Amarillo',
+    '#f44336a4': 'Rojo',
+    '#000000a2': 'Negro'
   };
 
   const colorCount = {
-    '#2196f3': 0,
-    '#4caf50': 0,
-    '#ffeb3b': 0,
-    '#f44336': 0,
-    '#000000': 0
+    '#2195f383': 0,
+    '#4caf4f9b': 0,
+    '#ffeb3ba5': 0,
+    '#f44336a4': 0,
+    '#000000a2': 0
   };
+
+
 
   let total = 0;
 
@@ -54,7 +56,7 @@ const ColumnSummary = ({ grouped, date }) => {
       <hr />
       <p><strong>Total celdas:</strong> {total}</p>
       <ColumnSummaryStyles.AstronautWrapper>
-        <Astronauta />
+      {/*   <Astronauta /> */}
       </ColumnSummaryStyles.AstronautWrapper>
     </ColumnSummaryStyles.SummaryContainer>
   );

@@ -1,6 +1,6 @@
 /**
  * @author Julian David Vera Godoy
- * @description *****
+ * @description Grid dinamica , donde permite al usuario interactuar y filtrar los diferentes tipos de datos y zonas
  * @date 2025-05-08
  */
 
@@ -9,6 +9,7 @@ import React, { useState } from 'react';
 import dayjs from 'dayjs';
 import ColumnSummary from '../../organisms/ColumnSummary/ColumnSummary';
 import GridTemplateStyles from './Assets/GridTemplateStyles';// Estilos styled-components
+import { Snackbar, Alert } from '@mui/material';
 
 import './Assets/GridTemplate.css'
 
@@ -17,17 +18,17 @@ import './Assets/GridTemplate.css'
 //Determinar el color de la celda_______
 const getBackgroundColor = (total, redZone, yellowZone, greenZone) => {
   if (total === 0) {
-    return '#000000'; // Negro
+    return '#000000a2'; // Negro
   } else if (total >= 1 && total <= redZone) {
-    return '#f44336'; // Rojo
+    return '#f44336a4'; // Rojo
   } else if (total > redZone && total <= redZone + yellowZone) {
-    return '#ffeb3b'; // Amarillo
+    return '#ffeb3ba5'; // Amarillo
   } else if (total > redZone + yellowZone && total <= redZone + yellowZone + greenZone) {
-    return '#4caf50'; // Verde
+    return '#4caf4f9b'; // Verde
   } else if (total > redZone + yellowZone + greenZone) {
-    return '#2196f3'; // Azul
+    return '#2195f383'; // Azul
   } else {
-    return '#5a5a5a'; // Blanco por defecto
+    return '#5a5a5aa5'; // Blanco por defecto
   }
 };
 
@@ -47,11 +48,13 @@ const GridTemplate = ({ data }) => {
   const [filterEndDate, setFilterEndDate] = useState('');
   const [dateRange, setDateRange] = useState([null, null]);
 
+  const [notificationOpen, setNotificationOpen] = useState(false);
 
   const toggleSortOrder = () => {
     setSortAsc(prev => !prev);
   };
 
+  const summaryRef = React.useRef(null); // Referencia al contenedor del resumen
   const scrollRef = React.useRef();
 
   const handleScroll = () => {
@@ -122,9 +125,33 @@ const GridTemplate = ({ data }) => {
     );
   };
 
-  const handleDateClick = date => {
-    setSelectedDate(date);
-  };
+// Alterna la selección o deselección de la columna al hacer clic
+const handleDateClick = async (date) => {
+  setSelectedDate((prevDate) => {
+    const newDate = prevDate === date ? '' : date;
+
+    // Mostrar la notificación solo cuando se activa el resultado
+    if (newDate) {
+      setNotificationOpen(true);
+    }
+
+    // Esperar un pequeño tiempo para garantizar el renderizado antes del scroll
+    setTimeout(() => {
+      if (newDate && summaryRef.current) {
+        summaryRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      }
+    }, 300); // Ajuste del tiempo para garantizar la visibilidad
+
+    return newDate;
+  });
+};
+
+const handleCloseNotification = (event, reason) => {
+  if (reason === 'clickaway') return;
+  setNotificationOpen(false);
+};
+
+
   const dateMatch = (date) => {
     const formattedDate = dayjs(date).format('YYYY-MM-DD');
     const isAfterStart = !filterStartDate || dayjs(formattedDate).isSameOrAfter(dayjs(filterStartDate));
@@ -187,11 +214,11 @@ const GridTemplate = ({ data }) => {
             onChange={e => setFilterColor(e.target.value)}
             >
             <option value="">Color</option>
-            <option value="#f44336">Rojo</option>
-            <option value="#ffeb3b">Amarillo</option>
-            <option value="#4caf50">Verde</option>
-            <option value="#2196f3">Azul</option>
-            <option value="#000000">Negro</option>
+            <option value="#f44336a4">Rojo</option>
+            <option value="#ffeb3ba5">Amarillo</option>
+            <option value="#4caf4f9b">Verde</option>
+            <option value="#2195f383">Azul</option>
+            <option value="#000000a2">Negro</option>
             </GridTemplateStyles.Select>
 
         {
@@ -229,11 +256,10 @@ const GridTemplate = ({ data }) => {
       <tr>
           <GridTemplateStyles.StickyThLeft left="0">CenterCode</GridTemplateStyles.StickyThLeft>
           <GridTemplateStyles.StickyThLeft
-              left="110px"
-              onClick={toggleSortOrder}
-              style={{ textDecoration: 'underline', cursor: 'pointer' }}
+          left="110px"
+           onClick={toggleSortOrder}
           >
-              Reference {sortAsc ? '▲' : '▼'}
+             Reference {sortAsc ? '▲' : '▼'}
           </GridTemplateStyles.StickyThLeft>
           {
             dates.map((date, index) => {
@@ -242,14 +268,14 @@ const GridTemplate = ({ data }) => {
             const isSelected = selectedDate === date;
 
                 return (
-                    <GridTemplateStyles.Th
-                        key={date}
-                        title={fullDate}
-                        onClick={() => handleDateClick(date)}
-                        className={`col-${index} ${isSelected ? 'selected-column' : ''}`}
-                    >
-                    {shortDate}
-                    </GridTemplateStyles.Th>
+                <GridTemplateStyles.Th
+                key={date}
+                title={fullDate}
+                onClick={() => handleDateClick(date)}
+                className={`col-${index} ${isSelected ? 'selected-column' : ''}`}
+                >
+                {shortDate}
+                </GridTemplateStyles.Th>
                 );
             })
           }
@@ -304,7 +330,22 @@ const GridTemplate = ({ data }) => {
 
 
 {/* RESULTADO CONSOLIDADO DEL DATA GRID______________________ */}
-      {selectedDate && <ColumnSummary grouped={grouped} date={selectedDate} />}
+<div ref={summaryRef}>
+    {/* Tu componente principal aquí */}
+    {selectedDate && <ColumnSummary grouped={grouped} date={selectedDate} />}
+
+    {/* Snackbar de Material-UI */}
+    <Snackbar
+      open={notificationOpen}
+      autoHideDuration={3000}
+      onClose={handleCloseNotification}
+      anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+    >
+      <Alert onClose={handleCloseNotification} severity="success" sx={{ width: '100%' }}>
+        Resultado Activo
+      </Alert>
+    </Snackbar>
+  </div>
     </GridTemplateStyles.Container>
   );
 };
